@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Session 1: a shape is a function</title>
 <style>
-  :root { --bg:#ffffff; --fg:#14181f; --muted:#5b6472; --card:#f3f5f8; --accent:#1f6feb; --good:#1a7f37; --bad:#b42318; --line:#d7dce3; }
-  @media (prefers-color-scheme: dark) { :root { --bg:#0e1116; --fg:#e6e9ee; --muted:#9aa3b2; --card:#171b22; --accent:#58a6ff; --good:#3fb950; --bad:#f97066; --line:#2a313c; } }
+  :root { --bg:#ffffff; --fg:#14181f; --muted:#5b6472; --card:#f3f5f8; --accent:#1f6feb; --inside:#005a9c; --outside:#f2cc4d; --good:#1a7f37; --bad:#b42318; --line:#d7dce3; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0e1116; --fg:#e6e9ee; --muted:#9aa3b2; --card:#171b22; --accent:#58a6ff; --inside:#79c8ff; --outside:#655000; --good:#3fb950; --bad:#f97066; --line:#2a313c; } }
   * { box-sizing: border-box; }
   body { margin:0; padding:16px; background:var(--bg); color:var(--fg); font:16px/1.5 system-ui, sans-serif; }
   main { max-width: 780px; margin: 0 auto; }
@@ -100,7 +100,7 @@ function dot(a, x, y, color, label) {
 }
 function draw() {
   ctx.clearRect(0, 0, W, H);
-  const C = { fg: css("--fg"), muted: css("--muted"), accent: css("--accent"), line: css("--line"), good: css("--good"), bad: css("--bad") };
+  const C = { fg: css("--fg"), muted: css("--muted"), accent: css("--accent"), inside: css("--inside"), outside: css("--outside"), line: css("--line"), good: css("--good"), bad: css("--bad") };
   
 const CC = [-0.6, 0], BC = [0.6, 0], BH = [0.4, 0.3], r = p.r;
 const sdC = (x, y) => Math.hypot(x - CC[0], y - CC[1]) - r;
@@ -111,8 +111,8 @@ if (graph === "field") {
   for (let i = 0; i < W; i += cell) for (let j = 0; j < H; j += cell) {
     const x = (i + cell / 2 - ox) / S, y = (oy - (j + cell / 2)) / S, d = Math.min(sdC(x, y), sdB(x, y));
     if (Math.abs(d) < 0.02) { ctx.globalAlpha = 1; ctx.fillStyle = C.fg; }
-    else if (d < 0) { ctx.globalAlpha = 0.2 + 0.5 * Math.min(1, -d / 0.5); ctx.fillStyle = C.accent; }
-    else { ctx.globalAlpha = 0.04 + 0.25 * Math.min(1, d / 1.2); ctx.fillStyle = C.muted; }
+    else if (d < 0) { ctx.globalAlpha = 0.65 + 0.25 * Math.min(1, -d / 0.5); ctx.fillStyle = C.inside; }
+    else { ctx.globalAlpha = 0.65 + 0.25 * Math.min(1, d / 1.2); ctx.fillStyle = C.outside; }
     ctx.fillRect(i, j, cell, cell);
   }
   ctx.globalAlpha = 1;
@@ -121,7 +121,7 @@ if (graph === "field") {
   const rad = Math.abs(dU) * S;
   if (qx - rad > 2 && qx + rad < W - 2 && qy - rad > 2 && qy + rad < H - 2) { ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.arc(qx, qy, rad, 0, 2 * Math.PI); ctx.stroke(); ctx.setLineDash([]); }
   ctx.fillStyle = C.fg; ctx.font = "12px system-ui"; ctx.textAlign = "left";
-  ctx.fillText("black line: surface (value 0). Blue: inside (negative). Grey: outside (positive).", 10, 18);
+  ctx.fillText("black line: surface (0). Dark blue: inside (negative). Yellow: outside (positive).", 10, 18);
   ctx.fillText("red point = your query point; dashed circle (if it fits) has radius |value|", 10, H - 10);
 } else {
   const A = axes({ x: [-1.8, 1.8], y: [-1.2, 2.4], xl: "x along the line y = query y (units)", yl: "signed distance (units)", title: "Values along the line through the query point" }, C);
