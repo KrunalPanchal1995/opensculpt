@@ -43,6 +43,24 @@ def sd_box(p, c, half):
     return outside + inside
 
 
+def sd_round_box(p, c, half, r):
+    """Signed distance to a box with rounded corners: the box distance reduced by the radius r.
+
+    The box with half-sizes `half` is the core, so the rounded shape reaches r beyond it on every side."""
+    return sd_box(p, c, half) - r
+
+
+def sd_capsule(p, a, b, r):
+    """Signed distance from points p (shape (..., 2)) to a capsule: segment a-b grown by radius r."""
+    p = np.asarray(p, dtype=float)
+    a = np.asarray(a, dtype=float)
+    ba = np.asarray(b, dtype=float) - a
+    pa = p - a
+    # the closest point on the segment is at fraction h of the way from a to b, clamped to the ends
+    h = np.clip(np.sum(pa * ba, axis=-1) / max(float(np.dot(ba, ba)), 1e-12), 0.0, 1.0)
+    return np.linalg.norm(pa - np.asarray(h)[..., None] * ba, axis=-1) - r
+
+
 # %% [markdown]
 # ## Step 2: join two shapes, and turn numbers into a picture
 # A point is in the *union* of two shapes when it is inside at least one of them, so we take the
@@ -102,6 +120,18 @@ if __name__ == "__main__":
     ax2.legend()
     fig2.tight_layout()
     fig2.savefig(OUT / "sdf_profile.png", dpi=120)
+
+    # the same grid and colour scale as the first figure, for the two new shapes
+    fig3, axes3 = plt.subplots(1, 2, figsize=(8, 3.4))
+    shapes3 = [sd_round_box(P, (2.0, 0.0), (0.5, 0.5), 0.3), sd_capsule(P, (-1.5, 0.0), (-0.5, 0.0), 0.5)]
+    for ax, d, name in zip(axes3, shapes3, ["rounded box: box distance - r", "capsule: segment distance - r"]):
+        im = ax.imshow(d, extent=[*xlim, *ylim], origin="lower", cmap="RdBu", vmin=-1.5, vmax=1.5)
+        ax.contour(P[..., 0], P[..., 1], d, levels=[0.0], colors="k", linewidths=2)
+        ax.set_title(name)
+        ax.set_xlabel("x (units)")
+    axes3[0].set_ylabel("y (units)")
+    fig3.colorbar(im, ax=axes3, label="signed distance (units): blue negative = inside", shrink=0.85)
+    fig3.savefig(OUT / "sdf_rounded_capsule.png", dpi=110, bbox_inches="tight")
 
     frac = inside_fraction(lambda q: sd_circle(q, (0, 0), 1.0), (-1.5, 1.5), (-1.5, 1.5), 300)
     print("circle area by counting:", round(frac * 9.0, 4), " exact pi r^2 =", round(np.pi, 4))
