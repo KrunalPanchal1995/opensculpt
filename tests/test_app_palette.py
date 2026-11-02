@@ -1,8 +1,11 @@
 from pathlib import Path
 from urllib.parse import quote
 
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+import pytest
+
+# This browser test needs Selenium and Chrome; CI and most laptops skip it.
+webdriver = pytest.importorskip("selenium.webdriver")
+Options = pytest.importorskip("selenium.webdriver.chrome.options").Options
 
 
 ROOT = Path(__file__).resolve().parents[1]
